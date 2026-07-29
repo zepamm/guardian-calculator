@@ -95,7 +95,6 @@
         // ※実際の正しい数値データに書き換えてください
         const table = [];
         for (let i = 0; i <= 99; i++) {
-            // 仮の計算式で数値をいれています（実際のゲームデータに合わせて変更してください）
             table.push({
                 totalDia: i === 0 ? 0 : i * 1000, 
                 crown: i === 0 ? 0 : i * 5
@@ -110,12 +109,13 @@
             let opt1 = document.createElement('option');
             opt1.value = i;
             opt1.text = "Lv " + i;
+            if (i === 0) opt1.selected = true; // 現在Lvの初期選択をLv0に
             currentSelect.appendChild(opt1);
 
             let opt2 = document.createElement('option');
             opt2.value = i;
             opt2.text = "Lv " + i;
-            if (i === 1) opt2.selected = true; // 初期選択をLv1に
+            if (i === 0) opt2.selected = true; // 目標Lvの初期選択もLv0に
             targetSelect.appendChild(opt2);
         }
 
