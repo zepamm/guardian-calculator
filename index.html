@@ -80,6 +80,13 @@
                 <option value="1">Lv 1</option>
                 <option value="2">Lv 2</option>
                 <option value="3">Lv 3</option>
+                <option value="4">Lv 4</option>
+                <option value="5">Lv 5</option>
+                <option value="6">Lv 6</option>
+                <option value="7">Lv 7</option>
+                <option value="8">Lv 8</option>
+                <option value="9">Lv 9</option>
+                <option value="10">Lv 10</option>
             </select>
         </div>
 
@@ -90,6 +97,13 @@
                 <option value="1" selected>Lv 1</option>
                 <option value="2">Lv 2</option>
                 <option value="3">Lv 3</option>
+                <option value="4">Lv 4</option>
+                <option value="5">Lv 5</option>
+                <option value="6">Lv 6</option>
+                <option value="7">Lv 7</option>
+                <option value="8">Lv 8</option>
+                <option value="9">Lv 9</option>
+                <option value="10">Lv 10</option>
             </select>
         </div>
 
@@ -103,10 +117,17 @@
     <script>
         // レベルごとの累積データテーブル（必要に応じて数値を書き換えてください）
         const table = [
-            { totalDia: 0, crown: 0 },       // Lv 0
-            { totalDia: 1000, crown: 5 },    // Lv 1
-            { totalDia: 3000, crown: 15 },   // Lv 2
-            { totalDia: 6000, crown: 30 }    // Lv 3
+            { totalDia: 0, crown: 0 },          // Lv 0
+            { totalDia: 1000, crown: 5 },       // Lv 1
+            { totalDia: 2500, crown: 12 },      // Lv 2
+            { totalDia: 4500, crown: 20 },      // Lv 3
+            { totalDia: 7000, crown: 30 },      // Lv 4
+            { totalDia: 10000, crown: 45 },     // Lv 5
+            { totalDia: 14000, crown: 60 },     // Lv 6
+            { totalDia: 19000, crown: 80 },     // Lv 7
+            { totalDia: 25000, crown: 105 },    // Lv 8
+            { totalDia: 32000, crown: 135 },    // Lv 9
+            { totalDia: 40000, crown: 170 }     // Lv 10
         ];
 
         function calc() {
@@ -120,10 +141,10 @@
                 return;
             }
 
-            // 現在Lv→目標Lvまでに必要なダイヤ
+            // 現在Lv→目標Lvまでに必要なダイヤ（例: 5 → 10 の合計）
             let needDia = table[tar].totalDia - table[cur].totalDia;
 
-            // 次のLvまでに必要なダイヤ
+            // 次のLvまでに必要なダイヤ（例: 5 → 6 の1段階分）
             let nextDia = 0;
             if (table[cur + 1]) {
                 nextDia = table[cur + 1].totalDia - table[cur].totalDia;
