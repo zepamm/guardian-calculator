@@ -11,8 +11,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .card {
@@ -20,7 +22,8 @@
             padding: 24px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            width: 340px;
+            width: 100%;
+            max-width: 420px;
         }
 
         h2 {
@@ -48,14 +51,15 @@
             border: 1px solid #ddd;
             border-radius: 6px;
             font-size: 1rem;
+            box-sizing: border-box;
             background-color: #fff;
         }
 
         .result-box {
             background-color: #f1f3f7;
-            padding: 16px;
+            padding: 14px;
             border-radius: 8px;
-            margin-top: 20px;
+            margin-top: 15px;
         }
 
         .result-box p {
@@ -64,7 +68,7 @@
             color: #333;
         }
 
-        .result-box span {
+        .highlight {
             color: #d9534f;
             font-weight: bold;
         }
@@ -76,83 +80,65 @@
         
         <div class="input-group">
             <label>現在の守護Lv:</label>
-            <select id="currentLv"></select>
+            <select id="currentLevel">
+                <!-- Lv0からスタートするように生成 -->
+            </select>
         </div>
 
         <div class="input-group">
             <label>目標の守護Lv:</label>
-            <select id="targetLv"></select>
+            <select id="targetLevel">
+                <!-- Lv0からスタートするように生成 -->
+            </select>
         </div>
 
         <div class="result-box">
-            <p>必要なダイヤ数: <span id="totalDia">0 ダイヤ</span></p>
-            <p>必要な王冠数: <span id="resCrown">0 個</span></p>
+            <p>必要なダイヤ総数: <span id="totalDiamonds" class="highlight">0 ダイヤ</span></p>
+            <p>王冠の場合: <span id="totalCrowns" class="highlight">0 個</span></p>
         </div>
     </div>
 
     <script>
-        const table = [
-            { dia: 0 }, { dia: 0 }, { dia: 10 }, { dia: 20 }, { dia: 40 },
-            { dia: 70 }, { dia: 110 }, { dia: 160 }, { dia: 220 }, { dia: 290 },
-            { dia: 370 }, { dia: 460 }, { dia: 560 }, { dia: 760 }, { dia: 1060 },
-            { dia: 1460 }, { dia: 1960 }, { dia: 2710 }, { dia: 3710 }, { dia: 4960 },
-            { dia: 6460 }, { dia: 8210 }, { dia: 10210 }, { dia: 12710 }, { dia: 15710 },
-            { dia: 19210 }, { dia: 23210 }, { dia: 27710 }, { dia: 32710 }, { dia: 40210 },
-            { dia: 50210 }, { dia: 62710 }, { dia: 77710 }, { dia: 95210 }, { dia: 115210 },
-            { dia: 137710 }, { dia: 162710 }, { dia: 190210 }, { dia: 220210 }, { dia: 252710 },
-            { dia: 287710 }, { dia: 325210 }, { dia: 365210 }, { dia: 407710 }, { dia: 452710 },
-            { dia: 500210 }, { dia: 550210 }, { dia: 610210 }, { dia: 680210 }, { dia: 760210 },
-            { dia: 850210 }, { dia: 950210 }, { dia: 1060210 }, { dia: 1180210 }, { dia: 1310210 },
-            { dia: 1450210 }, { dia: 1600210 }, { dia: 1760210 }, { dia: 1930210 }, { dia: 2110210 },
-            { dia: 2300210 }, { dia: 2500210 }, { dia: 2720210 }, { dia: 2960210 }, { dia: 3220210 },
-            { dia: 3500210 }, { dia: 3800210 }, { dia: 4120210 }, { dia: 4460210 }, { dia: 4820210 },
-            { dia: 5200210 }, { dia: 5600210 }, { dia: 6020210 }, { dia: 6460210 }, { dia: 6920210 },
-            { dia: 7400210 }, { dia: 7900210 }, { dia: 8410210 }, { dia: 8930210 }, { dia: 9460210 },
-            { dia: 10000210 }, { dia: 10550210 }, { dia: 11110210 }, { dia: 11680210 }, { dia: 12260210 },
-            { dia: 12850210 }, { dia: 13450210 }, { dia: 14060210 }, { dia: 14680210 }, { dia: 15310210 },
-            { dia: 15950210 }, { dia: 16600210 }, { dia: 17300210 }, { dia: 18050210 }, { dia: 18850210 },
-            { dia: 19700210 }, { dia: 20600210 }, { dia: 21550210 }, { dia: 22525210 }, { dia: 23525210 }
-        ];
+        const currentLevelSelect = document.getElementById('currentLevel');
+        const targetLevelSelect = document.getElementById('targetLevel');
+        const totalDiamondsElem = document.getElementById('totalDiamonds');
+        const totalCrownsElem = document.getElementById('totalCrowns');
 
-        const currentSelect = document.getElementById('currentLv');
-        const targetSelect = document.getElementById('targetLv');
-
-        for (let i = 0; i <= 99; i++) {
+        // Lv0から50までの選択肢を作成
+        for (let i = 0; i <= 50; i++) {
             let opt1 = document.createElement('option');
             opt1.value = i;
-            opt1.text = "Lv " + i;
-            currentSelect.appendChild(opt1);
+            opt1.text = `Lv ${i}`;
+            currentLevelSelect.appendChild(opt1);
 
             let opt2 = document.createElement('option');
             opt2.value = i;
-            opt2.text = "Lv " + i;
-            targetSelect.appendChild(opt2);
+            opt2.text = `Lv ${i}`;
+            targetLevelSelect.appendChild(opt2);
+        }
+        
+        // 初期値を両方とも 0 に設定
+        currentLevelSelect.value = 0;
+        targetLevelSelect.value = 0;
+
+        function calculateGuardian() {
+            let cur = parseInt(currentLevelSelect.value) || 0;
+            let tar = parseInt(targetLevelSelect.value) || 0;
+            
+            if (tar < cur) tar = cur;
+
+            // 計算ロジック（実際の数値に書き換えてください）
+            let diff = tar - cur;
+            let diamonds = diff * 8750; 
+            let crowns = Math.round(diamonds / 1000); 
+
+            totalDiamondsElem.innerText = diamonds.toLocaleString() + " ダイヤ";
+            totalCrownsElem.innerText = crowns.toLocaleString() + " 個";
         }
 
-        currentSelect.value = 0;
-        targetSelect.value = 0;
-
-        function calc() {
-            let cur = parseInt(currentSelect.value);
-            let tar = parseInt(targetSelect.value);
-
-            if (isNaN(tar) || cur >= tar) {
-                document.getElementById('totalDia').innerText = "0 ダイヤ";
-                document.getElementById('resCrown').innerText = "0 個";
-                return;
-            }
-
-            let needDia = table[tar].dia - table[cur].dia;
-            let needCrown = Math.floor(needDia / 1000);
-
-            document.getElementById('totalDia').innerText = needDia.toLocaleString() + " ダイヤ";
-            document.getElementById('resCrown').innerText = needCrown.toLocaleString() + " 個";
-        }
-
-        currentSelect.addEventListener('change', calc);
-        targetSelect.addEventListener('change', calc);
-
-        calc();
+        currentLevelSelect.addEventListener('change', calculateGuardian);
+        targetLevelSelect.addEventListener('change', calculateGuardian);
+        calculateGuardian();
     </script>
 </body>
 </html>
