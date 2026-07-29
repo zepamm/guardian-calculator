@@ -75,36 +75,12 @@
         
         <div class="input-group">
             <label>現在の守護Lv:</label>
-            <select id="currentLv">
-                <option value="0">Lv 0</option>
-                <option value="1">Lv 1</option>
-                <option value="2">Lv 2</option>
-                <option value="3">Lv 3</option>
-                <option value="4">Lv 4</option>
-                <option value="5">Lv 5</option>
-                <option value="6">Lv 6</option>
-                <option value="7">Lv 7</option>
-                <option value="8">Lv 8</option>
-                <option value="9">Lv 9</option>
-                <option value="10">Lv 10</option>
-            </select>
+            <select id="currentLv"></select>
         </div>
 
         <div class="input-group">
             <label>目標の守護Lv:</label>
-            <select id="targetLv">
-                <option value="0">Lv 0</option>
-                <option value="1" selected>Lv 1</option>
-                <option value="2">Lv 2</option>
-                <option value="3">Lv 3</option>
-                <option value="4">Lv 4</option>
-                <option value="5">Lv 5</option>
-                <option value="6">Lv 6</option>
-                <option value="7">Lv 7</option>
-                <option value="8">Lv 8</option>
-                <option value="9">Lv 9</option>
-                <option value="10">Lv 10</option>
-            </select>
+            <select id="targetLv"></select>
         </div>
 
         <div class="result-box">
@@ -115,24 +91,37 @@
     </div>
 
     <script>
-        // レベルごとの累積データテーブル（必要に応じて数値を書き換えてください）
-        const table = [
-            { totalDia: 0, crown: 0 },          // Lv 0
-            { totalDia: 1000, crown: 5 },       // Lv 1
-            { totalDia: 2500, crown: 12 },      // Lv 2
-            { totalDia: 4500, crown: 20 },      // Lv 3
-            { totalDia: 7000, crown: 30 },      // Lv 4
-            { totalDia: 10000, crown: 45 },     // Lv 5
-            { totalDia: 14000, crown: 60 },     // Lv 6
-            { totalDia: 19000, crown: 80 },     // Lv 7
-            { totalDia: 25000, crown: 105 },    // Lv 8
-            { totalDia: 32000, crown: 135 },    // Lv 9
-            { totalDia: 40000, crown: 170 }     // Lv 10
-        ];
+        // Lv0からLv99までのデータを自動生成するサンプルデータテーブル
+        // ※実際の正しい数値データに書き換えてください
+        const table = [];
+        for (let i = 0; i <= 99; i++) {
+            // 仮の計算式で数値をいれています（実際のゲームデータに合わせて変更してください）
+            table.push({
+                totalDia: i === 0 ? 0 : i * 1000, 
+                crown: i === 0 ? 0 : i * 5
+            });
+        }
+
+        // セレクトボックスにLv0〜Lv99の選択肢を自動で追加する処理
+        const currentSelect = document.getElementById('currentLv');
+        const targetSelect = document.getElementById('targetLv');
+
+        for (let i = 0; i <= 99; i++) {
+            let opt1 = document.createElement('option');
+            opt1.value = i;
+            opt1.text = "Lv " + i;
+            currentSelect.appendChild(opt1);
+
+            let opt2 = document.createElement('option');
+            opt2.value = i;
+            opt2.text = "Lv " + i;
+            if (i === 1) opt2.selected = true; // 初期選択をLv1に
+            targetSelect.appendChild(opt2);
+        }
 
         function calc() {
-            let cur = parseInt(document.getElementById('currentLv').value);
-            let tar = parseInt(document.getElementById('targetLv').value);
+            let cur = parseInt(currentSelect.value);
+            let tar = parseInt(targetSelect.value);
 
             if (isNaN(tar) || cur >= tar || !table[tar] || !table[cur]) {
                 document.getElementById('nextDia').innerText = "0 ダイヤ";
@@ -141,16 +130,16 @@
                 return;
             }
 
-            // 現在Lv→目標Lvまでに必要なダイヤ（例: 5 → 10 の合計）
+            // 現在Lv → 目標Lv までのダイヤ総数
             let needDia = table[tar].totalDia - table[cur].totalDia;
 
-            // 次のLvまでに必要なダイヤ（例: 5 → 6 の1段階分）
+            // 次のLvまでの必要ダイヤ（現在Lvの1段階分）
             let nextDia = 0;
             if (table[cur + 1]) {
                 nextDia = table[cur + 1].totalDia - table[cur].totalDia;
             }
 
-            // 現在Lv→目標Lvまでに必要な王冠
+            // 現在Lv → 目標Lv までの王冠総数
             let crown = table[tar].crown - table[cur].crown;
 
             document.getElementById('nextDia').innerText = nextDia.toLocaleString() + " ダイヤ";
@@ -159,8 +148,8 @@
         }
 
         // イベント設定
-        document.getElementById('currentLv').addEventListener('change', calc);
-        document.getElementById('targetLv').addEventListener('change', calc);
+        currentSelect.addEventListener('change', calc);
+        targetSelect.addEventListener('change', calc);
 
         // 初期実行
         calc();
