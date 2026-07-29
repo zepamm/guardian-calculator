@@ -1,1 +1,229 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>守護Lv 必要ダイヤ・王冠計算ツール</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f4f6f8;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        h2 { text-align: center; color: #2c3e50; font-size: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        select { width: 100%; padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; }
+        .result-box { background-color: #eef2f7; padding: 15px; border-radius: 5px; margin-top: 20px; }
+        .result-item { margin-bottom: 10px; font-size: 16px; }
+        .result-value { font-weight: bold; color: #e74c3c; font-size: 18px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>守護ダイヤ計算</h2>
+
+    
+    <div class="form-group">
+        <label>現在の守護Lv:</label>
+        <select id="currentLv" onchange="onCurrentChange()"></select>
+    </div>
+
+    <div class="form-group">
+        <label>目標の守護Lv:</label>
+        <select id="targetLv" onchange="calc()"></select>
+    </div>
+
+    <div class="result-box">
+        <div class="result-item">次レベルまでの必要ダイヤ数: <span id="nextDia" class="result-value">0</span></div>
+        <div class="result-item">目標Lvまでのダイヤ総数: <span id="totalDia" class="result-value">0</span></div>
+        <div class="result-item">必要な王冠総数: <span id="resCrown" class="result-value">0</span></div>
+    </div>
+</div>
+
+<script>
+    // 守護Lv 0〜99のデータ（総ダイヤ数、王冠数など）
+    const table = [
+        {lv: 0, totalDia: 0, crown: 0},
+        {lv: 1, totalDia: 0, crown: 0},
+        {lv: 2, totalDia: 10, crown: 0},
+        {lv: 3, totalDia: 20, crown: 0},
+        {lv: 4, totalDia: 40, crown: 0},
+        {lv: 5, totalDia: 70, crown: 0},
+        {lv: 6, totalDia: 110, crown: 0},
+        {lv: 7, totalDia: 160, crown: 0},
+        {lv: 8, totalDia: 220, crown: 0},
+        {lv: 9, totalDia: 290, crown: 0},
+        {lv: 10, totalDia: 370, crown: 0},
+        {lv: 11, totalDia: 460, crown: 0},
+        {lv: 12, totalDia: 560, crown: 0},
+        {lv: 13, totalDia: 760, crown: 0},
+        {lv: 14, totalDia: 1060, crown: 0},
+        {lv: 15, totalDia: 1460, crown: 0},
+        {lv: 16, totalDia: 1960, crown: 0},
+        {lv: 17, totalDia: 2710, crown: 0},
+        {lv: 18, totalDia: 3710, crown: 0},
+        {lv: 19, totalDia: 4960, crown: 0},
+        {lv: 20, totalDia: 6460, crown: 0},
+        {lv: 21, totalDia: 8210, crown: 0},
+        {lv: 22, totalDia: 10210, crown: 0},
+        {lv: 23, totalDia: 12710, crown: 0},
+        {lv: 24, totalDia: 15710, crown: 0},
+        {lv: 25, totalDia: 19210, crown: 2},
+        {lv: 26, totalDia: 23210, crown: 3},
+        {lv: 27, totalDia: 27710, crown: 3},
+        {lv: 28, totalDia: 32710, crown: 4},
+        {lv: 29, totalDia: 40210, crown: 5},
+        {lv: 30, totalDia: 50210, crown: 6},
+        {lv: 31, totalDia: 62710, crown: 7},
+        {lv: 32, totalDia: 77710, crown: 8},
+        {lv: 33, totalDia: 95210, crown: 10},
+        {lv: 34, totalDia: 115210, crown: 12},
+        {lv: 35, totalDia: 137710, crown: 14},
+        {lv: 36, totalDia: 162710, crown: 17},
+        {lv: 37, totalDia: 190210, crown: 20},
+        {lv: 38, totalDia: 220210, crown: 23},
+        {lv: 39, totalDia: 252710, crown: 26},
+        {lv: 40, totalDia: 287710, crown: 29},
+        {lv: 41, totalDia: 325210, crown: 33},
+        {lv: 42, totalDia: 365210, crown: 37},
+        {lv: 43, totalDia: 407710, crown: 41},
+        {lv: 44, totalDia: 452710, crown: 46},
+        {lv: 45, totalDia: 500210, crown: 51},
+        {lv: 46, totalDia: 550210, crown: 56},
+        {lv: 47, totalDia: 610210, crown: 62},
+        {lv: 48, totalDia: 680210, crown: 69},
+        {lv: 49, totalDia: 760210, crown: 77},
+        {lv: 50, totalDia: 850210, crown: 86},
+        {lv: 51, totalDia: 950210, crown: 96},
+        {lv: 52, totalDia: 1060210, crown: 107},
+        {lv: 53, totalDia: 1180210, crown: 119},
+        {lv: 54, totalDia: 1310210, crown: 132},
+        {lv: 55, totalDia: 1450210, crown: 146},
+        {lv: 56, totalDia: 1600210, crown: 161},
+        {lv: 57, totalDia: 1760210, crown: 177},
+        {lv: 58, totalDia: 1930210, crown: 194},
+        {lv: 59, totalDia: 2110210, crown: 212},
+        {lv: 60, totalDia: 2300210, crown: 231},
+        {lv: 61, totalDia: 2500210, crown: 251},
+        {lv: 62, totalDia: 2720210, crown: 273},
+        {lv: 63, totalDia: 2960210, crown: 297},
+        {lv: 64, totalDia: 3220210, crown: 323},
+        {lv: 65, totalDia: 3500210, crown: 351},
+        {lv: 66, totalDia: 3800210, crown: 381},
+        {lv: 67, totalDia: 4120210, crown: 413},
+        {lv: 68, totalDia: 4460210, crown: 447},
+        {lv: 69, totalDia: 4820210, crown: 483},
+        {lv: 70, totalDia: 5200210, crown: 521},
+        {lv: 71, totalDia: 5600210, crown: 561},
+        {lv: 72, totalDia: 6020210, crown: 603},
+        {lv: 73, totalDia: 6460210, crown: 647},
+        {lv: 74, totalDia: 6920210, crown: 693},
+        {lv: 75, totalDia: 7400210, crown: 741},
+        {lv: 76, totalDia: 7900210, crown: 791},
+        {lv: 77, totalDia: 8410210, crown: 842},
+        {lv: 78, totalDia: 8930210, crown: 894},
+        {lv: 79, totalDia: 9460210, crown: 947},
+        {lv: 80, totalDia: 10000210, crown: 1001},
+        {lv: 81, totalDia: 10550210, crown: 1056},
+        {lv: 82, totalDia: 11110210, crown: 1112},
+        {lv: 83, totalDia: 11680210, crown: 1169},
+        {lv: 84, totalDia: 12260210, crown: 1227},
+        {lv: 85, totalDia: 12850210, crown: 1286},
+        {lv: 86, totalDia: 13450210, crown: 1346},
+        {lv: 87, totalDia: 14060210, crown: 1407},
+        {lv: 88, totalDia: 14680210, crown: 1469},
+        {lv: 89, totalDia: 15310210, crown: 1532},
+        {lv: 90, totalDia: 15950210, crown: 1596},
+        {lv: 91, totalDia: 16600210, crown: 1661},
+        {lv: 92, totalDia: 17300210, crown: 1731},
+        {lv: 93, totalDia: 18050210, crown: 1806},
+        {lv: 94, totalDia: 18850210, crown: 1886},
+        {lv: 95, totalDia: 19700210, crown: 1971},
+        {lv: 96, totalDia: 20600210, crown: 2061},
+        {lv: 97, totalDia: 21550210, crown: 2156},
+        {lv: 98, totalDia: 22525210, crown: 2253},
+        {lv: 99, totalDia: 23525210, crown: 2353}
+    ];
+
+    window.onload = function() {
+        let c = document.getElementById('currentLv');
+        let t = document.getElementById('targetLv');
+        for(let i=0; i<=99; i++) {
+            c.options.add(new Option('Lv ' + i, i));
+            t.options.add(new Option('Lv ' + i, i));
+        }
+        c.value = 0;
+        updateTargetOptions();
+        t.value = 1;
+        calc();
+    };
+
+    // 現在のLvが変わったときに、目標Lvの選択肢を現在のLvより上だけにする
+    function onCurrentChange() {
+        let cur = parseInt(document.getElementById('currentLv').value);
+        let t = document.getElementById('targetLv');
+        let oldTarget = parseInt(t.value);
+
+        t.innerHTML = "";
+        for(let i = cur + 1; i <= 99; i++) {
+            t.options.add(new Option('Lv ' + i, i));
+        }
+
+        // もし以前の目標Lvが新基準より小さければ、一番近い上のLvにする
+        if(oldTarget <= cur) {
+            t.value = cur + 1 <= 99 ? cur + 1 : 99;
+        } else {
+            t.value = oldTarget;
+        }
+        calc();
+    }
+
+    function updateTargetOptions() {
+        let cur = parseInt(document.getElementById('currentLv').value);
+        let t = document.getElementById('targetLv');
+        t.innerHTML = "";
+        for(let i = cur + 1; i <= 99; i++) {
+            t.options.add(new Option('Lv ' + i, i));
+        }
+    }
+
+function calc() {
+    let cur = parseInt(document.getElementById('currentLv').value);
+    let tar = parseInt(document.getElementById('targetLv').value);
+
+    if (isNaN(tar) || cur >= tar) {
+        document.getElementById('nextDia').innerText = "0 ダイヤ";
+        document.getElementById('totalDia').innerText = "0 ダイヤ";
+        document.getElementById('resCrown').innerText = "0 個";
+        return;
+    }
+
+    // 現在Lv→目標Lvまでに必要なダイヤ
+    let needDia = table[tar].totalDia - table[cur].totalDia;
+
+    // 次のLvまでに必要なダイヤ
+    let nextDia = table[cur + 1].totalDia - table[cur].totalDia;
+
+    // 現在Lv→目標Lvまでに必要な王冠
+    let crown = table[tar].crown - table[cur].crown;
+
+    document.getElementById('nextDia').innerText = nextDia.toLocaleString() + " ダイヤ";
+    document.getElementById('totalDia').innerText = needDia.toLocaleString() + " ダイヤ";
+    document.getElementById('resCrown').innerText = crown.toLocaleString() + " 個";
+}
+
+</script>
+
+</body>
+</html>
 
