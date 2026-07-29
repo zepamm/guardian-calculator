@@ -19,7 +19,7 @@
             padding: 24px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            width: 320px;
+            width: 340px;
         }
 
         h2 {
@@ -84,74 +84,160 @@
         </div>
 
         <div class="result-box">
-            <p>次レベルまでの必要ダイヤ数: <span id="nextDia">0 ダイヤ</span></p>
-            <p>目標Lvまでのダイヤ総数: <span id="totalDia">0 ダイヤ</span></p>
-            <p>必要な王冠総数: <span id="resCrown">0 個</span></p>
+            <p>現在～目標の必要ダイヤ数: <span id="totalDia">0 ダイヤ</span></p>
+            <p>必要な王冠数: <span id="resCrown">0 個</span></p>
         </div>
     </div>
 
     <script>
-        // Lv0からLv99までのデータを自動生成するサンプルデータテーブル
-        // ※実際の正しい数値データに書き換えてください
-        const table = [];
-        for (let i = 0; i <= 99; i++) {
-            table.push({
-                totalDia: i === 0 ? 0 : i * 1000, 
-                crown: i === 0 ? 0 : i * 5
-            });
-        }
+        // 画像の表に基づくLv0〜Lv99のデータテーブル（必要ダイヤ総数）
+        const table = [
+            { dia: 0 },       // Lv0
+            { dia: 0 },       // Lv1
+            { dia: 10 },      // Lv2
+            { dia: 20 },      // Lv3
+            { dia: 40 },      // Lv4
+            { dia: 70 },      // Lv5
+            { dia: 110 },     // Lv6
+            { dia: 160 },     // Lv7
+            { dia: 220 },     // Lv8
+            { dia: 290 },     // Lv9
+            { dia: 370 },     // Lv10
+            { dia: 460 },     // Lv11
+            { dia: 560 },     // Lv12
+            { dia: 760 },     // Lv13
+            { dia: 1060 },    // Lv14
+            { dia: 1460 },    // Lv15
+            { dia: 1960 },    // Lv16
+            { dia: 2710 },    // Lv17
+            { dia: 3710 },    // Lv18
+            { dia: 4960 },    // Lv19
+            { dia: 6460 },    // Lv20
+            { dia: 8210 },    // Lv21
+            { dia: 10210 },   // Lv22
+            { dia: 12710 },   // Lv23
+            { dia: 15710 },   // Lv24
+            { dia: 19210 },   // Lv25
+            { dia: 23210 },   // Lv26
+            { dia: 27710 },   // Lv27
+            { dia: 32710 },   // Lv28
+            { dia: 40210 },   // Lv29
+            { dia: 50210 },   // Lv30
+            { dia: 62710 },   // Lv31
+            { dia: 77710 },   // Lv32
+            { dia: 95210 },   // Lv33
+            { dia: 115210 },  // Lv34
+            { dia: 137710 },  // Lv35
+            { dia: 162710 },  // Lv36
+            { dia: 190210 },  // Lv37
+            { dia: 220210 },  // Lv38
+            { dia: 252710 },  // Lv39
+            { dia: 287710 },  // Lv40
+            { dia: 325210 },  // Lv41
+            { dia: 365210 },  // Lv42
+            { dia: 407710 },  // Lv43
+            { dia: 452710 },  // Lv44
+            { dia: 500210 },  // Lv45
+            { dia: 550210 },  // Lv46
+            { dia: 610210 },  // Lv47
+            { dia: 680210 },  // Lv48
+            { dia: 760210 },  // Lv49
+            { dia: 850210 },  // Lv50
+            { dia: 950210 },  // Lv51
+            { dia: 1060210 }, // Lv52
+            { dia: 1180210 }, // Lv53
+            { dia: 1310210 }, // Lv54
+            { dia: 1450210 }, // Lv55
+            { dia: 1600210 }, // Lv56
+            { dia: 1760210 }, // Lv57
+            { dia: 1930210 }, // Lv58
+            { dia: 2110210 }, // Lv59
+            { dia: 2300210 }, // Lv60
+            { dia: 2500210 }, // Lv61
+            { dia: 2720210 }, // Lv62
+            { dia: 2960210 }, // Lv63
+            { dia: 3220210 }, // Lv64
+            { dia: 3500210 }, // Lv65
+            { dia: 3800210 }, // Lv66
+            { dia: 4120210 }, // Lv67
+            { dia: 4460210 }, // Lv68
+            { dia: 4820210 }, // Lv69
+            { dia: 5200210 }, // Lv70
+            { dia: 5600210 }, // Lv71
+            { dia: 6020210 }, // Lv72
+            { dia: 6460210 }, // Lv73
+            { dia: 6920210 }, // Lv74
+            { dia: 7400210 }, // Lv75
+            { dia: 7900210 }, // Lv76
+            { dia: 8410210 }, // Lv77
+            { dia: 8930210 }, // Lv78
+            { dia: 9460210 }, // Lv79
+            { dia: 10000210 },// Lv80
+            { dia: 10550210 },// Lv81
+            { dia: 11110210 },// Lv82
+            { dia: 11680210 },// Lv83
+            { dia: 12260210 },// Lv84
+            { dia: 12850210 },// Lv85
+            { dia: 13450210 },// Lv86
+            { dia: 14060210 },// Lv87
+            { dia: 14680210 },// Lv88
+            { dia: 15310210 },// Lv89
+            { dia: 15950210 },// Lv90
+            { dia: 16600210 },// Lv91
+            { dia: 17300210 },// Lv92
+            { dia: 18050210 },// Lv93
+            { dia: 18850210 },// Lv94
+            { dia: 19700210 },// Lv95
+            { dia: 20600210 },// Lv96
+            { dia: 21550210 },// Lv97
+            { dia: 22525210 },// Lv98
+            { dia: 23525210 } // Lv99
+        ];
 
-        // セレクトボックスにLv0〜Lv99の選択肢を自動で追加する処理
         const currentSelect = document.getElementById('currentLv');
         const targetSelect = document.getElementById('targetLv');
 
+        // セレクトボックス生成
         for (let i = 0; i <= 99; i++) {
             let opt1 = document.createElement('option');
             opt1.value = i;
             opt1.text = "Lv " + i;
-            if (i === 0) opt1.selected = true; // 現在Lvの初期選択をLv0に
             currentSelect.appendChild(opt1);
 
             let opt2 = document.createElement('option');
             opt2.value = i;
             opt2.text = "Lv " + i;
-            if (i === 0) opt2.selected = true; // 目標Lvの初期選択もLv0に
             targetSelect.appendChild(opt2);
         }
+
+        // 初期選択を Lv0 に
+        currentSelect.value = 0;
+        targetSelect.value = 0;
 
         function calc() {
             let cur = parseInt(currentSelect.value);
             let tar = parseInt(targetSelect.value);
 
-            if (isNaN(tar) || cur >= tar || !table[tar] || !table[cur]) {
-                document.getElementById('nextDia').innerText = "0 ダイヤ";
+            if (isNaN(tar) || cur >= tar) {
                 document.getElementById('totalDia').innerText = "0 ダイヤ";
                 document.getElementById('resCrown').innerText = "0 個";
                 return;
             }
 
-            // 現在Lv → 目標Lv までのダイヤ総数
-            let needDia = table[tar].totalDia - table[cur].totalDia;
+            // 目標Lvの総数 － 現在Lvの総数 で差分を計算
+            let needDia = table[tar].dia - table[cur].dia;
+            
+            // 王冠数の計算（※もし王冠の正確な換算レートや計算式が決まっている場合はここに反映できます。現状は例としてダイヤ数から算出、または必要に応じて変更してください）
+            // 例として 1000ダイヤ = 1個 として計算する場合のプレースホルダー。実際のレートに合わせて変更してください。
+            let needCrown = Math.floor(needDia / 1000); 
 
-            // 次のLvまでの必要ダイヤ（現在Lvの1段階分）
-            let nextDia = 0;
-            if (table[cur + 1]) {
-                nextDia = table[cur + 1].totalDia - table[cur].totalDia;
-            }
-
-            // 現在Lv → 目標Lv までの王冠総数
-            let crown = table[tar].crown - table[cur].crown;
-
-            document.getElementById('nextDia').innerText = nextDia.toLocaleString() + " ダイヤ";
             document.getElementById('totalDia').innerText = needDia.toLocaleString() + " ダイヤ";
-            document.getElementById('resCrown').innerText = crown.toLocaleString() + " 個";
+            document.getElementById('resCrown').innerText = needCrown.toLocaleString() + " 個";
         }
 
-        // イベント設定
         currentSelect.addEventListener('change', calc);
         targetSelect.addEventListener('change', calc);
 
-        // 初期実行
         calc();
     </script>
 </body>
