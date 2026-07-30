@@ -55,16 +55,6 @@
             background: #fff;
         }
 
-        .note-text {
-            font-size: 0.8rem;
-            color: #666;
-            margin-bottom: 16px;
-            background: #f1f3f7;
-            padding: 8px 12px;
-            border-radius: 6px;
-            line-height: 1.4;
-        }
-
         .result-box {
             background-color: #f8f9fa;
             border-left: 4px solid #6f42c1;
@@ -121,10 +111,6 @@
             </select>
         </div>
 
-        <div class="note-text">
-            ※ご提示いただいた「守護Lvに対する必要ダイヤ数一覧表」の正確な累計データ（Lv1〜Lv99）に基づき計算しています。
-        </div>
-
         <div class="result-box">
             <h3>📊 計算結果</h3>
             <div class="result-item">
@@ -133,7 +119,7 @@
             </div>
             <div class="result-item">
                 <span>王冠の場合:</span>
-                <span id="guardianRequiredHeli" class="red-text">0 機</span>
+                <span id="guardianRequiredHeli" class="red-text">0 個</span>
             </div>
             <div class="result-item">
                 <span>総贈物値:</span>
@@ -143,8 +129,6 @@
     </div>
 
     <script>
-        // 画像の正確な守護レベルデータ（Lv0〜Lv99）
-        // 形式: [累計必要ダイヤ数, 累計必要ヘリ数, 総贈物値の範囲文字列]
         const guardianData = [
             [0, 0, "0 ～ 99"], // Lv0
             [0, 0, "100 ～ 599"], // Lv1
@@ -251,23 +235,17 @@
         const currentLvSelect = document.getElementById('currentGuardianLevel');
         const targetLvSelect = document.getElementById('targetGuardianLevel');
 
-        // セレクトボックスにLv0〜99を格納
         for (let i = 0; i <= 99; i++) {
             let opt1 = document.createElement('option');
             opt1.value = i;
             opt1.innerText = `Lv ${i}`;
-            // 現在・目標ともに初期値は0に設定
-            if (i === 0) {
-                opt1.selected = true;
-            }
+            if (i === 0) opt1.selected = true;
             currentLvSelect.appendChild(opt1);
 
             let opt2 = document.createElement('option');
             opt2.value = i;
             opt2.innerText = `Lv ${i}`;
-            if (i === 0) {
-                opt2.selected = true;
-            }
+            if (i === 0) opt2.selected = true;
             targetLvSelect.appendChild(opt2);
         }
 
@@ -292,7 +270,7 @@
             }
 
             document.getElementById('guardianRequiredDiamond').innerText = reqDiamond.toLocaleString() + " ダイヤ";
-            document.getElementById('guardianRequiredHeli').innerText = reqHeli.toLocaleString() + " 機";
+            document.getElementById('guardianRequiredHeli').innerText = reqHeli.toLocaleString() + " 個";
             document.getElementById('guardianTotalGift').innerText = totalGiftStr;
         }
 
