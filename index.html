@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>荒野行動 守護Lv必要ダイヤ・ヘリ計算ツール</title>
+    <title>荒野行動 守護Lv 必要ダイヤ・ヘリ計算ツール</title>
     <style>
         body {
             font-family: sans-serif;
@@ -110,7 +110,7 @@
         <div class="input-group">
             <label>現在の守護Lv:</label>
             <select id="currentGuardianLevel">
-                <!-- JSで動的生成 -->
+                <!-- JSで動적生成 -->
             </select>
         </div>
 
@@ -256,14 +256,17 @@
             let opt1 = document.createElement('option');
             opt1.value = i;
             opt1.innerText = `Lv ${i}`;
+            // 現在の守護Lvの初期値を 0 に設定
+            if (i === 0) opt1.selected = true;
             currentLvSelect.appendChild(opt1);
 
             let opt2 = document.createElement('option');
             opt2.value = i;
             opt2.innerText = `Lv ${i}`;
+            // 目標の守護Lvの初期値を 1 に設定（0からスタートして最初に分かりやすいように）
+            if (i === 1) opt2.selected = true;
             targetLvSelect.appendChild(opt2);
         }
-        targetLvSelect.value = 50; // デフォルト目標Lv
 
         function calculateGuardian() {
             let curLv = parseInt(currentLvSelect.value) || 0;
