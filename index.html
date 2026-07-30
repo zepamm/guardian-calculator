@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>守護ダイヤ計算</title>
+    <title>荒野行動 ガチャ＆チャージ・守護最適化シミュレーター</title>
     <style>
         body {
             font-family: sans-serif;
@@ -23,7 +23,7 @@
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             width: 100%;
-            max-width: 420px;
+            max-width: 480px;
         }
 
         h2 {
@@ -42,103 +42,584 @@
             font-weight: bold;
             margin-bottom: 6px;
             color: #333;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
-        select {
+        input[type="number"], select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 6px;
             font-size: 1rem;
             box-sizing: border-box;
-            background-color: #fff;
+            background: #fff;
+        }
+
+        .checkbox-group {
+            background: #f1f3f7;
+            padding: 10px 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0;
+            font-size: 0.9rem;
+            color: #333;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        .note-text {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 16px;
+            background: #f1f3f7;
+            padding: 8px 12px;
+            border-radius: 6px;
         }
 
         .result-box {
-            background-color: #f1f3f7;
-            padding: 14px;
-            border-radius: 8px;
-            margin-top: 15px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 16px;
         }
 
-        .result-box p {
-            margin: 8px 0;
+        .result-box.alt {
+            border-left-color: #28a745;
+        }
+
+        .result-box.normal {
+            border-left-color: #ffc107;
+        }
+
+        .result-box.guardian {
+            border-left-color: #6f42c1;
+        }
+
+        .result-box h3 {
+            margin-top: 0;
+            font-size: 1.05rem;
+            color: #333;
+            border-bottom: 1px solid #eaeaea;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
             font-size: 0.95rem;
             color: #333;
+        }
+
+        .result-item.sub {
+            font-size: 0.8rem;
+            color: #666;
+            margin: -4px 0 8px 0;
+            padding-left: 4px;
         }
 
         .highlight {
             color: #d9534f;
             font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .red-text {
+            color: #d9534f;
+            font-weight: bold;
+        }
+
+        ul {
+            margin: 5px 0 12px 0;
+            padding-left: 20px;
+            font-size: 0.85rem;
+            color: #555;
+            background: #fff;
+            padding: 8px 8px 8px 24px;
+            border-radius: 6px;
+            border: 1px solid #eee;
         }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>守護ダイヤ計算</h2>
+        <h2>ガチャ＆チャージ 最適化チェッカー</h2>
         
         <div class="input-group">
+            <label>ご予算（日本円）:</label>
+            <input type="number" id="budgetInput" value="10000" step="1000" min="0">
+        </div>
+
+        <div class="input-group">
+            <label>現在のEX殿堂ポイント:</label>
+            <input type="number" id="currentExPtInput" value="0" step="1" min="0">
+        </div>
+
+        <div class="input-group">
+            <label>現在の通常殿堂ポイント:</label>
+            <input type="number" id="currentNormalPtInput" value="0" step="1" min="0">
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="transferExToCheck">
+            <label for="transferExToCheck">パターン2でも現在のEX殿堂ポイントを通常殿堂に移行して合算する（換算比率4:5）</label>
+        </div>
+
+        <div class="input-group">
             <label>現在の守護Lv:</label>
-            <select id="currentLevel">
-                <!-- Lv0からスタートするように生成 -->
+            <select id="currentGuardianLevel">
+                <!-- JSで動的生成または手動構築 -->
             </select>
         </div>
 
         <div class="input-group">
             <label>目標の守護Lv:</label>
-            <select id="targetLevel">
-                <!-- Lv0からスタートするように生成 -->
+            <select id="targetGuardianLevel">
+                <!-- JSで動的生成または手動構築 -->
             </select>
         </div>
 
+        <div class="note-text">
+            ※正確な「守護Lvに対する必要ダイヤ数一覧表」のデータに基づき計算しています。
+        </div>
+
+        <!-- 守護の計算結果表示用ボックス -->
+        <div class="result-box guardian">
+            <h3>🛡️ 守護レベルアップに必要なダイヤ・還元</h3>
+            <div class="result-item">
+                <span>必要ダイヤ総数:</span>
+                <span id="guardianRequiredDiamond" class="highlight">0 ダイヤ</span>
+            </div>
+            <div class="result-item">
+                <span>必要ヘリ総数:</span>
+                <span id="guardianRequiredHeli" class="red-text">0 機</span>
+            </div>
+            <div class="result-item">
+                <span>総贈物値:</span>
+                <span id="guardianTotalGift" class="red-text">0</span>
+            </div>
+        </div>
+
+        <!-- パターン1の結果 -->
         <div class="result-box">
-            <p>必要なダイヤ数: <span id="totalDiamonds" class="highlight">0 ダイヤ</span></p>
-            <p>王冠の場合: <span id="totalCrowns" class="highlight">0 個</span></p>
+            <h3>✨ パターン1: EX殿堂を引いて通常殿堂へ移行</h3>
+            <div id="chargeDetailsA"></div>
+            
+            <div class="result-item">
+                <span>EX殿堂 総回数:</span>
+                <span id="gachaACount" class="highlight">0 連</span>
+            </div>
+            <div class="result-item sub">
+                <span>（サイト限定チケ購入 ＋ おまけ獲得分）</span>
+            </div>
+
+            <div class="result-item">
+                <span>通常殿堂への移行ポイント:</span>
+                <span id="transferredPoints" class="red-text">0 pt</span>
+            </div>
+
+            <div class="result-item">
+                <span>獲得できる水晶:</span>
+                <span id="crystalA" class="highlight">0 個</span>
+            </div>
+
+            <div class="result-item">
+                <span>現在の余りポイント:</span>
+                <span id="currentPtA" class="red-text">0 pt</span>
+            </div>
+
+            <div class="result-item">
+                <span>次の水晶まで:</span>
+                <span>あと <span id="nextCrystalA" class="highlight">251</span> pt</span>
+            </div>
+        </div>
+
+        <!-- パターン2の結果 -->
+        <div class="result-box alt">
+            <h3>💎 パターン2: 通常殿堂を直接ガチャする</h3>
+            <div id="chargeDetailsB"></div>
+            
+            <div class="result-item">
+                <span>通常殿堂 総回数:</span>
+                <span id="gachaBCount" class="highlight">0 連</span>
+            </div>
+            <div class="result-item sub">
+                <span>（おまけ獲得分含む）</span>
+            </div>
+
+            <div class="result-item">
+                <span>通常殿堂のポイント:</span>
+                <span id="totalPointsB" class="red-text">0 pt</span>
+            </div>
+
+            <div class="result-item">
+                <span>獲得できる水晶:</span>
+                <span id="crystalB" class="highlight">0 個</span>
+            </div>
+
+            <div class="result-item">
+                <span>現在の余りポイント:</span>
+                <span id="currentPtB" class="red-text">0 pt</span>
+            </div>
+
+            <div class="result-item">
+                <span>次の水晶まで:</span>
+                <span>あと <span id="nextCrystalB" class="highlight">251</span> pt</span>
+            </div>
+        </div>
+
+        <!-- パターン3の結果（普通のガチャ・金券最大化） -->
+        <div class="result-box normal">
+            <h3>📦 パターン3: 普通のガチャ（金券最大化）</h3>
+            <div id="chargeDetailsC"></div>
+            <div class="result-item" style="border-top: 1px solid #eaeaea; padding-top: 8px; margin-top: 8px;">
+                <span>総獲得金券:</span>
+                <span id="totalVoucherC" class="highlight">0 金券</span>
+            </div>
         </div>
     </div>
 
     <script>
-        const currentLevelSelect = document.getElementById('currentLevel');
-        const targetLevelSelect = document.getElementById('targetLevel');
-        const totalDiamondsElem = document.getElementById('totalDiamonds');
-        const totalCrownsElem = document.getElementById('totalCrowns');
+        // 正確な守護レベルデータ（Lv0〜Lv99）
+        // 形式: [累積ダイヤ, 累計ヘリ, 贈物値文字列]
+        const guardianData = [
+            [0, 0, "0 ～ 99"], // Lv0
+            [0, 0, "100 ～ 599"], // Lv1
+            [10, 0, "600 ～ 2K"], // Lv2
+            [20, 0, "2K ～ 4K"], // Lv3
+            [40, 0, "4K ～ 7K"], // Lv4
+            [70, 0, "7K ～ 11K"], // Lv5
+            [110, 0, "11K ～ 16K"], // Lv6
+            [160, 0, "16K ～ 22K"], // Lv7
+            [220, 0, "22K ～ 29K"], // Lv8
+            [290, 0, "29K ～ 37K"], // Lv9
+            [370, 0, "37K ～ 46K"], // Lv10
+            [460, 0, "46K ～ 56K"], // Lv11
+            [560, 0, "56K ～ 76K"], // Lv12
+            [760, 0, "76K ～ 106K"], // Lv13
+            [1060, 0, "106K ～ 146K"], // Lv14
+            [1460, 0, "146K ～ 196K"], // Lv15
+            [1960, 0, "196K ～ 271K"], // Lv16
+            [2710, 0, "271K ～ 371K"], // Lv17
+            [3710, 0, "371K ～ 496K"], // Lv18
+            [4960, 0, "496K ～ 646K"], // Lv19
+            [6460, 0, "646K ～ 821K"], // Lv20
+            [8210, 0, "821K ～ 1M"], // Lv21
+            [10210, 0, "1M ～ 1M"], // Lv22
+            [12710, 0, "1M ～ 2M"], // Lv23
+            [15710, 0, "2M ～ 2M"], // Lv24
+            [19210, 2, "2M ～ 2M"], // Lv25
+            [23210, 3, "2M ～ 3M"], // Lv26
+            [27710, 3, "3M ～ 3M"], // Lv27
+            [32710, 4, "3M ～ 4M"], // Lv28
+            [40210, 5, "4M ～ 5M"], // Lv29
+            [50210, 6, "5M ～ 6M"], // Lv30
+            [62710, 7, "6M ～ 8M"], // Lv31
+            [77710, 8, "8M ～ 10M"], // Lv32
+            [95210, 10, "10M ～ 12M"], // Lv33
+            [115210, 12, "12M ～ 14M"], // Lv34
+            [137710, 14, "14M ～ 16M"], // Lv35
+            [162710, 17, "16M ～ 19M"], // Lv36
+            [190210, 20, "19M ～ 22M"], // Lv37
+            [220210, 23, "22M ～ 25M"], // Lv38
+            [252710, 26, "25M ～ 29M"], // Lv39
+            [287710, 29, "29M ～ 33M"], // Lv40
+            [325210, 33, "33M ～ 37M"], // Lv41
+            [365210, 37, "37M ～ 41M"], // Lv42
+            [407710, 41, "41M ～ 45M"], // Lv43
+            [452710, 46, "45M ～ 50M"], // Lv44
+            [500210, 51, "50M ～ 55M"], // Lv45
+            [550210, 56, "55M ～ 61M"], // Lv46
+            [610210, 62, "61M ～ 68M"], // Lv47
+            [680210, 69, "68M ～ 76M"], // Lv48
+            [760210, 77, "76M ～ 85M"], // Lv49
+            [850210, 86, "85M ～ 95M"], // Lv50
+            [950210, 96, "95M ～ 106M"], // Lv51
+            [1060210, 107, "106M ～ 118M"], // Lv52
+            [1180210, 119, "118M ～ 131M"], // Lv53
+            [1310210, 132, "131M ～ 145M"], // Lv54
+            [1450210, 146, "145M ～ 160M"], // Lv55
+            [1600210, 161, "160M ～ 176M"], // Lv56
+            [1760210, 177, "176M ～ 193M"], // Lv57
+            [1930210, 194, "193M ～ 211M"], // Lv58
+            [2110210, 212, "211M ～ 230M"], // Lv59
+            [2300210, 231, "230M ～ 250M"], // Lv60
+            [2500210, 251, "250M ～ 272M"], // Lv61
+            [2720210, 273, "272M ～ 296M"], // Lv62
+            [2960210, 297, "296M ～ 322M"], // Lv63
+            [3220210, 323, "322M ～ 350M"], // Lv64
+            [3500210, 351, "350M ～ 380M"], // Lv65
+            [3800210, 381, "380M ～ 412M"], // Lv66
+            [4120210, 413, "412M ～ 446M"], // Lv67
+            [4460210, 447, "446M ～ 482M"], // Lv68
+            [4820210, 483, "482M ～ 520M"], // Lv69
+            [5200210, 521, "520M ～ 560M"], // Lv70
+            [5600210, 561, "560M ～ 602M"], // Lv71
+            [6020210, 603, "602M ～ 646M"], // Lv72
+            [6460210, 647, "646M ～ 692M"], // Lv73
+            [6920210, 693, "692M ～ 740M"], // Lv74
+            [7400210, 741, "740M ～ 790M"], // Lv75
+            [7900210, 791, "790M ～ 841M"], // Lv76
+            [8410210, 842, "841M ～ 893M"], // Lv77
+            [8930210, 894, "893M ～ 946M"], // Lv78
+            [9460210, 947, "946M ～ 1,000M"], // Lv79
+            [10000210, 1001, "1,000M ～ 1,055M"], // Lv80
+            [10550210, 1056, "1,055M ～ 1,111M"], // Lv81
+            [11110210, 1112, "1,111M ～ 1,168M"], // Lv82
+            [11680210, 1169, "1,168M ～ 1,226M"], // Lv83
+            [12260210, 1227, "1,226M ～ 1,285M"], // Lv84
+            [12850210, 1286, "1,285M ～ 1,345M"], // Lv85
+            [13450210, 1346, "1,345M ～ 1,406M"], // Lv86
+            [14060210, 1407, "1,406M ～ 1,468M"], // Lv87
+            [14680210, 1469, "1,468M ～ 1,531M"], // Lv88
+            [15310210, 1532, "1,531M ～ 1,595M"], // Lv89
+            [15950210, 1596, "1,595M ～ 1,660M"], // Lv90
+            [16600210, 1661, "1,660M ～ 1,730M"], // Lv91
+            [17300210, 1731, "1,730M ～ 1,805M"], // Lv92
+            [18050210, 1806, "1,805M ～ 1,885M"], // Lv93
+            [18850210, 1886, "1,885M ～ 1,970M"], // Lv94
+            [19700210, 1971, "1,970M ～ 2,060M"], // Lv95
+            [20600210, 2061, "2,060M ～ 2,155M"], // Lv96
+            [21550210, 2156, "2,155M ～ 2,253M"], // Lv97
+            [22525210, 2253, "2,253M ～ 2,353M"], // Lv98
+            [23525210, 2353, "2,353M ～ ∞"] // Lv99
+        ];
 
-        // Lv0から50までの選択肢を作成
-        for (let i = 0; i <= 50; i++) {
+        const centerPlans = [
+            { price: 100000, voucher: 57800 },
+            { price: 50000, voucher: 29800 },
+            { price: 30000, voucher: 17340 },
+            { price: 10000, voucher: 6080 },
+            { price: 5000, voucher: 2980 },
+            { price: 3800, voucher: 2206 },
+            { price: 2400, voucher: 1390 },
+            { price: 1500, voucher: 860 },
+            { price: 800, voucher: 452 },
+            { price: 480, voucher: 264 },
+            { price: 160, voucher: 90 }
+        ];
+
+        const exTicketPacks = [
+            { price: 14800, tickets: 90, max: 3 },
+            { price: 8300, tickets: 50, max: 3 },
+            { price: 1000, tickets: 10, max: 1 },
+            { price: 100, tickets: 3, max: 1 }
+        ];
+
+        // セレクトボックスの初期化
+        const currentLvSelect = document.getElementById('currentGuardianLevel');
+        const targetLvSelect = document.getElementById('targetGuardianLevel');
+
+        for (let i = 0; i <= 99; i++) {
             let opt1 = document.createElement('option');
             opt1.value = i;
-            opt1.text = `Lv ${i}`;
-            currentLevelSelect.appendChild(opt1);
+            opt1.innerText = `Lv ${i}`;
+            currentLvSelect.appendChild(opt1);
 
             let opt2 = document.createElement('option');
             opt2.value = i;
-            opt2.text = `Lv ${i}`;
-            targetLevelSelect.appendChild(opt2);
+            opt2.innerText = `Lv ${i}`;
+            targetLvSelect.appendChild(opt2);
         }
-        
-        // 初期値を両方とも 0 に設定
-        currentLevelSelect.value = 0;
-        targetLevelSelect.value = 0;
+        targetLvSelect.value = 50; // 初期目標Lvを50などに
 
-        function calculateGuardian() {
-            let cur = parseInt(currentLevelSelect.value) || 0;
-            let tar = parseInt(targetLevelSelect.value) || 0;
+        const budgetInput = document.getElementById('budgetInput');
+        const currentExPtInput = document.getElementById('currentExPtInput');
+        const currentNormalPtInput = document.getElementById('currentNormalPtInput');
+        const transferExToCheck = document.getElementById('transferExToCheck');
+
+        function calculateOptimization() {
+            let budget = parseInt(budgetInput.value) || 0;
+            let currentExPt = parseInt(currentExPtInput.value) || 0;
+            let currentNormalPt = parseInt(currentNormalPtInput.value) || 0;
+            let isTransferEx = transferExToCheck.checked;
             
-            if (tar < cur) tar = cur;
+            let curLv = parseInt(currentLvSelect.value) || 0;
+            let tarLv = parseInt(targetLvSelect.value) || 0;
 
-            // 計算ロジック（実際の数値に書き換えてください）
-            let diff = tar - cur;
-            let diamonds = diff * 8750; 
-            let crowns = Math.round(diamonds / 1000); 
+            // 守護レベルの計算
+            let reqDiamond = 0;
+            let reqHeli = 0;
+            let totalGiftStr = "-";
 
-            totalDiamondsElem.innerText = diamonds.toLocaleString() + " ダイヤ";
-            totalCrownsElem.innerText = crowns.toLocaleString() + " 個";
+            if (tarLv > curLv) {
+                let currentAccumulated = guardianData[curLv][0];
+                let targetAccumulated = guardianData[tarLv][0];
+                reqDiamond = targetAccumulated - currentAccumulated;
+
+                let currentHeli = guardianData[curLv][1];
+                let targetHeli = guardianData[tarLv][1];
+                reqHeli = targetHeli - currentHeli;
+
+                totalGiftStr = guardianData[tarLv][2];
+            }
+
+            document.getElementById('guardianRequiredDiamond').innerText = reqDiamond.toLocaleString() + " ダイヤ";
+            document.getElementById('guardianRequiredHeli').innerText = reqHeli.toLocaleString() + " 機";
+            document.getElementById('guardianTotalGift').innerText = totalGiftStr;
+
+            if (budget <= 0) {
+                document.getElementById('chargeDetailsA').innerHTML = "<ul><li>予算を入力してください</li></ul>";
+                document.getElementById('chargeDetailsB').innerHTML = "<ul><li>予算を入力してください</li></ul>";
+                document.getElementById('chargeDetailsC').innerHTML = "<ul><li>予算を入力してください</li></ul>";
+                return;
+            }
+
+            // ==========================================
+            // パターン1の計算（EX殿堂ルート）
+            // ==========================================
+            let remA = budget;
+            let totalVoucherA = 0;
+            let detailsHtmlA = "<ul>";
+            let usedExTickets = 0;
+
+            for (let pack of exTicketPacks) {
+                let boughtCount = 0;
+                while (remA >= pack.price && boughtCount < pack.max) {
+                    remA -= pack.price;
+                    boughtCount++;
+                    usedExTickets += pack.tickets;
+                }
+                if (boughtCount > 0) {
+                    detailsHtmlA += `<li>【サイト限定】EX殿堂チケ ${pack.tickets}枚パック(${pack.price.toLocaleString()}円)×${boughtCount}</li>`;
+                }
+            }
+
+            for (let plan of centerPlans) {
+                if (remA >= plan.price) {
+                    let count = Math.floor(remA / plan.price);
+                    remA -= count * plan.price;
+                    let subVoucher = count * plan.voucher;
+                    totalVoucherA += subVoucher;
+                    detailsHtmlA += `<li>【サイト金券】 ${plan.price.toLocaleString()}円×${count} (${subVoucher.toLocaleString()}金券)</li>`;
+                }
+            }
+            if (remA > 0) detailsHtmlA += `<li>端数のこり現金: ${remA.toLocaleString()}円</li>`;
+            detailsHtmlA += "</ul>";
+
+            let baseExCount = Math.floor(totalVoucherA / 100) + usedExTickets;
+            let totalExCount = baseExCount;
+
+            let loopA = 0, curA = totalExCount;
+            while (true) {
+                let bonus = Math.floor(curA / 100) * 8;
+                if (bonus === 0) break;
+                totalExCount += bonus;
+                curA = bonus;
+                loopA++;
+                if (loopA > 10) break;
+            }
+
+            let newTransferredPoints = Math.floor(currentExPt * (5 / 4)) + Math.floor(totalExCount * (5 / 4));
+            let transferredPoints = newTransferredPoints; 
+            let crystalA = Math.floor(transferredPoints / 251);
+            let currentPtA = transferredPoints % 251;
+            let nextCrystalA = 251 - currentPtA;
+
+
+            // ==========================================
+            // パターン2の計算（通常殿堂ルート）
+            // ==========================================
+            let remB = budget;
+            let totalVoucherB = 0;
+            let detailsHtmlB = "<ul>";
+
+            for (let plan of centerPlans) {
+                if (remB >= plan.price) {
+                    let count = Math.floor(remB / plan.price);
+                    remB -= count * plan.price;
+                    let subVoucher = count * plan.voucher;
+                    totalVoucherB += subVoucher;
+                    detailsHtmlB += `<li>【サイト金券】 ${plan.price.toLocaleString()}円×${count} (${subVoucher.toLocaleString()}金券)</li>`;
+                }
+            }
+            if (remB > 0) detailsHtmlB += `<li>端数のこり現金: ${remB.toLocaleString()}円</li>`;
+            detailsHtmlB += "</ul>";
+
+            let baseBCount = Math.floor(totalVoucherB / 80);
+            let totalBCount = baseBCount;
+
+            let loopB = 0, curB = totalBCount;
+            while (true) {
+                let bonusB = Math.floor(curB / 70) * 18;
+                if (bonusB === 0) break;
+                totalBCount += bonusB;
+                curB = bonusB;
+                loopB++;
+                if (loopB > 10) break;
+            }
+
+            let newTotalPointsB = totalBCount;
+            let baseNormalFromEx = isTransferEx ? Math.floor(currentExPt * (5 / 4)) : 0;
+            let totalPointsB = currentNormalPt + baseNormalFromEx + newTotalPointsB;
+            
+            let crystalB = Math.floor(totalPointsB / 251);
+            let currentPtB = totalPointsB % 251;
+            let nextCrystalB = 251 - currentPtB;
+
+
+            // ==========================================
+            // パターン3の計算（普通のガチャ・金券最大化ルート）
+            // ==========================================
+            let remC = budget;
+            let totalVoucherC = 0;
+            let detailsHtmlC = "<ul>";
+
+            for (let plan of centerPlans) {
+                if (remC >= plan.price) {
+                    let count = Math.floor(remC / plan.price);
+                    remC -= count * plan.price;
+                    let subVoucher = count * plan.voucher;
+                    totalVoucherC += subVoucher;
+                    detailsHtmlC += `<li>【サイト金券】 ${plan.price.toLocaleString()}円×${count} (${subVoucher.toLocaleString()}金券)</li>`;
+                }
+            }
+            if (remC > 0) detailsHtmlC += `<li>端数のこり現金: ${remC.toLocaleString()}円</li>`;
+            detailsHtmlC += "</ul>";
+
+
+            // --- 画面反映 ---
+            document.getElementById('chargeDetailsA').innerHTML = detailsHtmlA;
+            document.getElementById('gachaACount').innerText = totalExCount.toLocaleString() + " 連";
+            document.getElementById('transferredPoints').innerText = transferredPoints.toLocaleString() + " pt";
+            document.getElementById('crystalA').innerText = crystalA.toLocaleString() + " 個";
+            document.getElementById('currentPtA').innerText = currentPtA.toLocaleString() + " pt";
+            document.getElementById('nextCrystalA').innerText = nextCrystalA.toLocaleString();
+
+            document.getElementById('chargeDetailsB').innerHTML = detailsHtmlB;
+            document.getElementById('gachaBCount').innerText = totalBCount.toLocaleString() + " 連";
+            document.getElementById('totalPointsB').innerText = totalPointsB.toLocaleString() + " pt";
+            document.getElementById('crystalB').innerText = crystalB.toLocaleString() + " 個";
+            document.getElementById('currentPtB').innerText = currentPtB.toLocaleString() + " pt";
+            document.getElementById('nextCrystalB').innerText = nextCrystalB.toLocaleString();
+
+            document.getElementById('chargeDetailsC').innerHTML = detailsHtmlC;
+            document.getElementById('totalVoucherC').innerText = totalVoucherC.toLocaleString() + " 金券";
         }
 
-        currentLevelSelect.addEventListener('change', calculateGuardian);
-        targetLevelSelect.addEventListener('change', calculateGuardian);
-        calculateGuardian();
+        budgetInput.addEventListener('input', calculateOptimization);
+        currentExPtInput.addEventListener('input', calculateOptimization);
+        currentNormalPtInput.addEventListener('input', calculateOptimization);
+        transferExToCheck.addEventListener('change', calculateOptimization);
+        currentLvSelect.addEventListener('change', calculateOptimization);
+        targetLvSelect.addEventListener('change', calculateOptimization);
+
+        calculateOptimization();
     </script>
 </body>
 </html>
